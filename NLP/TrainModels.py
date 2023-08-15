@@ -26,12 +26,12 @@ ATTENTION_DROPOUT_RATE = 0.1
 LABEL_SMOOTHING = 0.1
 TRAIN_EPOCHS = 2000
 WARMUP_STEPS = 500
-
+DATABASE_NAME = 'MySQL'
 
 if __name__ == "__main__":
-    training_set_sizes = [1000,5000,10000,25000,50000,100000,1000000]
-    training_set_sizes = [1000000]
-  
+    training_set_sizes = [1000, 5000, 10000, 25000, 50000, 100000, 1000000]
+    training_set_sizes = [1000]
+
     for training_set_size in training_set_sizes:
         print("### TRAINING MODEL - INFORMATION ###")
         print("Random seed: " + str(RANDOM_SEED))
@@ -51,16 +51,24 @@ if __name__ == "__main__":
         print("Label smoothing: " + str(LABEL_SMOOTHING))
         print("####################################")
 
-
-        trainingDataSaveDir = "../Data/TrainingData/HumanMine/" + str(training_set_size) + "/"
+        trainingDataSaveDir = f"../Data/TrainingData/{DATABASE_NAME}/" + str(training_set_size) + "/"
 
         # Using pre-trained word embeddings 
         OpenNMTcmd = 'onmt_train -data ' + str(trainingDataSaveDir) \
-        + 'dataset -save_model ./Models/model-HumanMine-' + str(training_set_size) \
-        + ' --layers ' + str(NUM_LAYERS) + ' -heads ' + str(NUM_HEADS) + ' -rnn_size ' + str(RNN_SIZE) + ' -word_vec_size ' + str(WORD_VEC_SIZE) + ' -transformer_ff ' + str(TRANSFORMER_FF) + ' -max_generator_batches 2 -seed ' + str(RANDOM_SEED) + ' -batch_size ' + str(BATCH_SIZE) + ' -valid_batch_size ' + str(VALID_BATCH_SIZE) + ' -accum_count ' + str(ACCUM_COUNT) + ' -optim adam -adam_beta2 0.998 -encoder_type transformer -max_grad_norm 0 -decoder_type transformer -position_encoding -param_init_glorot -param_init 0 -batch_type tokens -decay_method noam -learning_rate ' + str(LEARNING_RATE) + ' -normalization tokens -train_steps ' \
-        + str(TRAIN_EPOCHS) + ' -pre_word_vecs_enc ' + str(trainingDataSaveDir) + 'embeddings.enc.pt -pre_word_vecs_dec ' + str(trainingDataSaveDir) + 'embeddings.dec.pt -valid_steps 100 -save_checkpoint_steps 500 -report_every 50 -dropout ' + str(DROPOUT_RATE) + ' -attention_dropout ' + str(ATTENTION_DROPOUT_RATE) + ' -label_smoothing ' + str(LABEL_SMOOTHING) + ''
-        
-        #print(OpenNMTcmd)
+                     + f'dataset -save_model ./Models/model-{DATABASE_NAME}-' + str(training_set_size) \
+                     + ' --layers ' + str(NUM_LAYERS) + ' -heads ' + str(NUM_HEADS) + ' -rnn_size ' + str(
+            RNN_SIZE) + ' -word_vec_size ' + str(WORD_VEC_SIZE) + ' -transformer_ff ' + str(
+            TRANSFORMER_FF) + ' -max_generator_batches 2 -seed ' + str(RANDOM_SEED) + ' -batch_size ' + str(
+            BATCH_SIZE) + ' -valid_batch_size ' + str(VALID_BATCH_SIZE) + ' -accum_count ' + str(
+            ACCUM_COUNT) + ' -optim adam -adam_beta2 0.998 -encoder_type transformer -max_grad_norm 0 -decoder_type transformer -position_encoding -param_init_glorot -param_init 0 -batch_type tokens -decay_method noam -learning_rate ' + str(
+            LEARNING_RATE) + ' -normalization tokens -train_steps ' \
+                     + str(TRAIN_EPOCHS) + ' -pre_word_vecs_enc ' + str(
+            trainingDataSaveDir) + 'embeddings.enc.pt -pre_word_vecs_dec ' + str(
+            trainingDataSaveDir) + 'embeddings.dec.pt -valid_steps 100 -save_checkpoint_steps 500 -report_every 50 -dropout ' + str(
+            DROPOUT_RATE) + ' -attention_dropout ' + str(ATTENTION_DROPOUT_RATE) + ' -label_smoothing ' + str(
+            LABEL_SMOOTHING) + ''
+
+        # print(OpenNMTcmd)
 
         process = subprocess.Popen(OpenNMTcmd, shell=True, stderr=subprocess.STDOUT)
         process.wait()

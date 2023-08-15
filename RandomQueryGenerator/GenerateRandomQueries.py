@@ -121,7 +121,8 @@ class GenerateRandomQueries(ABC):
         # Write to files in src-train, src-val, src-test, tgt-train, tgt-val, tgt-test required by OpenNMT
         # Source sentences
         src_train, src_test = train_test_split(sentences, test_size=0.2, random_state=1234, shuffle=True) 	
-        src_train, src_val = train_test_split(src_train, test_size=0.2, random_state=1234, shuffle=True) 
+        src_train, src_val = train_test_split(src_train, test_size=0.2, random_state=1234, shuffle=True)
+
         outF = open(training_data_save_dir + "src-dataset-" + identifier + "-train.txt", "w")
         for line in src_train:
             outF.write(line)
@@ -224,7 +225,7 @@ class GenerateRandomQueries(ABC):
 
         return runsQueries
 
-    def getQuerySubgraphNrClasses(self, desiredNrClasses, attributeChoiceProbability, constraintChoiceProbability, complexity_cap = None):
+    def getQuerySubgraphNrClasses(self, desiredNrClasses, attributeChoiceProbability, constraintChoiceProbability, complexity_cap = None, countdown=10):
         random.seed(random.randint(1,999999))
 
         nrChosenAttributes = 0
@@ -304,6 +305,7 @@ class GenerateRandomQueries(ABC):
 
             # Check that there are at least 1 neighbor, otherwise just try again if we require a uniform as we don't have a complete query, or finish in other case
             if(len(connectNodes) == 0):
+                countdown-=1
                 validGraph = False
                 break 
 
@@ -371,10 +373,11 @@ class GenerateRandomQueries(ABC):
         schemaGraph.remove_nodes_from(removeNodes)
 
         # self.displayGraph(schemaGraph)
-        if validGraph and nrChosenClasses == desiredNrClasses:
+
+        if (validGraph and nrChosenClasses == desiredNrClasses ) or countdown<1:
             return schemaGraph
         else:
-            return self.getQuerySubgraphNrClasses(desiredNrClasses, attributeChoiceProbability, constraintChoiceProbability, complexity_cap)
+            return self.getQuerySubgraphNrClasses(desiredNrClasses, attributeChoiceProbability, constraintChoiceProbability, complexity_cap, countdown=countdown)
 
     def getQuerySubgraph(self, graphTraversalProbability, attributeChoiceProbability, constraintChoiceProbability, complexity_cap = None):
         random.seed(random.randint(1,999999))
