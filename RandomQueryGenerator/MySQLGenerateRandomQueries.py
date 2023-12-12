@@ -28,7 +28,7 @@ class MySQLGenerateRandomQueries(GenerateRandomQueries):
 
 if __name__ == "__main__":
     MySQLGenerateRandomQueries = MySQLGenerateRandomQueries("../Data/Schemas/MySQLdbSchema.obj")
-    training_set_sizes = [1000,5000,10000,25000,50000,100000,1000000]
+    training_set_sizes = [1000000]
     query_complexity_limits = [4,4,2]
     
     for training_set_size in training_set_sizes:

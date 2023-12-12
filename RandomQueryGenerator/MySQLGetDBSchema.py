@@ -2,6 +2,14 @@ from GetDBSchema import GetDBSchema
 import mysql.connector
 import numpy as np
 import math
+config = {
+    'user': 'mirna',
+    'password': 'Password_123',
+    'host': '185.175.171.169',
+    'database': 'mirdb',
+    'raise_on_warnings': True,
+    'auth_plugin':'mysql_native_password'
+}
 
 # Example 1: child class to get the schema of the HumanMine database
 class MySQLGetDBSchema(GetDBSchema):
@@ -9,19 +17,14 @@ class MySQLGetDBSchema(GetDBSchema):
         super().__init__(name, accessData)
 
         # Initialize MySQL service object
-        self.service = mysql.connector.connect(
-                host=self.accessData["host"],
-                user=self.accessData["user"],
-                passwd=self.accessData["passwd"],
-                database=self.accessData["database"],
-                port=self.accessData["port"]
-            )
-
+        self.service = mysql.connector.connect(**config)
     # This has to be abstract 
     def getClassWeight(self, className, reference): 
         cursor = self.service.cursor()
         cursor.execute("SELECT TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES WHERE table_name = '" + className + "'")
         classWeight = cursor.fetchone()
+        if classWeight[0] == 0:
+            return -1
         return math.log(classWeight[0])
 
     def getDBSchema(self):       
@@ -33,8 +36,8 @@ class MySQLGetDBSchema(GetDBSchema):
         cursor.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES where table_schema = '" + self.accessData["database"] + "'")
         classes = cursor.fetchall()
         for clss in classes:
-            if clss[0] not in schema:
-                schema[clss[0]] = dict()
+            if str(clss[0], 'UTF-8') not in schema:
+                schema[str(clss[0], 'UTF-8')] = dict()
 
         # Table relationships
         cursor = self.service.cursor()
@@ -51,27 +54,29 @@ class MySQLGetDBSchema(GetDBSchema):
 
         for element in schema.keys():
             database_schema[element] = {'references':list(),'attributes':list(),'weight':1/len(schema.keys())}
-    
-            database_schema[element]['weight'] = float(math.log(self.getClassWeight(element, "")+1, 10))
+            try:
+                database_schema[element]['weight'] = float(math.log(self.getClassWeight(element, "")+1, 10))
 
-            for reference in schema[element]:
-                database_schema[element]['references'].append(reference)
+                for reference in schema[element]:
+                    database_schema[element]['references'].append(reference)
 
-            # Get the properties (attributes) of the node
-            nodeProperties = set()
-            cursor = self.service.cursor()
-            cursor.execute("SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '" + element + "'")
-            attrs = cursor.fetchall()
-            for attr in attrs:
-                if attr[0] not in nodeProperties:
-                    nodeProperties.add(attr[0])
+                # Get the properties (attributes) of the node
+                nodeProperties = set()
+                cursor = self.service.cursor()
+                cursor.execute("SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '" + element + "'")
+                attrs = cursor.fetchall()
+                for attr in attrs:
+                    if attr[0] not in nodeProperties:
+                        nodeProperties.add(attr[0])
 
-            for attribute in nodeProperties:
-                database_schema[element]['attributes'].append(attribute)
+                for attribute in nodeProperties:
+                    database_schema[element]['attributes'].append(attribute)
+            except ValueError as ve:
+                database_schema.pop(element)
 
         self.getGraphFromSchemaEdgeList(database_schema, "MySQLdbSchema.obj")
 
         print("The schema has " + str(len(database_schema.keys())) + " classes.")   
 
-MySQLSchema = MySQLGetDBSchema('MySQL Example', {"host":"localhost", "user": "root", "passwd": "test", "database": "testdb", "port": 3308})
+MySQLSchema = MySQLGetDBSchema('MySQL Example', {"host":"185.175.171.169", "user": "mirna", "passwd": "Password_123", "database": "mirdb", "port": 3360})
 MySQLSchema.getDBSchema()
