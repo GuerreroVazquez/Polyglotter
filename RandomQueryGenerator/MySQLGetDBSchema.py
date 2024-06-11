@@ -3,10 +3,10 @@ import mysql.connector
 import numpy as np
 import math
 config = {
-    'user': 'mirna',
-    'password': 'Password_123',
-    'host': '185.175.171.169',
-    'database': 'mirdb',
+    'user': '',
+    'password': '',
+    'host': '',
+    'database': '',
     'raise_on_warnings': True,
     'auth_plugin':'mysql_native_password'
 }
@@ -36,8 +36,13 @@ class MySQLGetDBSchema(GetDBSchema):
         cursor.execute("SELECT table_name FROM INFORMATION_SCHEMA.TABLES where table_schema = '" + self.accessData["database"] + "'")
         classes = cursor.fetchall()
         for clss in classes:
-            if str(clss[0], 'UTF-8') not in schema:
-                schema[str(clss[0], 'UTF-8')] = dict()
+            if isinstance(clss[0], bytes):
+                decoded_clss = clss[0].decode('UTF-8')
+            else:
+                decoded_clss = clss[0]
+
+            if decoded_clss not in schema:
+                schema[decoded_clss] = dict()
 
         # Table relationships
         cursor = self.service.cursor()
@@ -78,5 +83,5 @@ class MySQLGetDBSchema(GetDBSchema):
 
         print("The schema has " + str(len(database_schema.keys())) + " classes.")   
 
-MySQLSchema = MySQLGetDBSchema('MySQL Example', {"host":"185.175.171.169", "user": "mirna", "passwd": "Password_123", "database": "mirdb", "port": 3360})
+MySQLSchema = MySQLGetDBSchema('MySQL Example', {"host":config["host"], "user": config["user"], "passwd": config["password"], "database": config["database"], "port": 3360})
 MySQLSchema.getDBSchema()
